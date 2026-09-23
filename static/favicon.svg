@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+	<title>Liviana</title>
+	<rect width="64" height="64" fill="#16301c" />
+	<!--
+		A leaf, not a feather. Three marks total: silhouette, one midrib, one dot.
+		Feather barbs were fine detail, and fine detail is exactly what dies at 16px.
+	-->
+	<g transform="rotate(-38 32 32)">
+		<!-- Leaf body: pointed at both ends, widest in the middle. -->
+		<path d="M32 9c10 7.5 15 14.5 15 23s-5 15.5-15 23c-10-7.5-15-14.5-15-23s5-15.5 15-23z" fill="#f2f7f1" />
+		<!-- Midrib: the single interior mark. Stops short of the tip so it never touches the edge. -->
+		<path d="M32 17v30" stroke="#16301c" stroke-width="4.5" stroke-linecap="round" fill="none" />
+	</g>
+	<!-- Amber drop, clear of the leaf edge so neither shape bites the other. -->
+	<circle cx="16" cy="48" r="6" fill="#e07b1f" />
+</svg>
