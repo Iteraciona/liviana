@@ -1,115 +1,54 @@
 <script lang="ts">
 	interface Props {
-		onfiles: (files: File[]) => void;
+		/** Files are being dragged over the window. */
+		active?: boolean;
 		disabled?: boolean;
+		onpick: () => void;
 	}
 
-	let { onfiles, disabled = false }: Props = $props();
+	let { active = false, disabled = false, onpick }: Props = $props();
 
-	let isDragging = $state(false);
-	let dragDepth = 0;
-	let input: HTMLInputElement;
+	let isMac = $state(false);
 
-	function handleEnter(event: DragEvent) {
-		event.preventDefault();
-		if (disabled) return;
-		dragDepth++;
-		isDragging = true;
-	}
+	$effect(() => {
+		isMac = /Mac|iPhone|iPad/.test(navigator.userAgent);
+	});
 
-	function handleLeave(event: DragEvent) {
-		event.preventDefault();
-		dragDepth--;
-		// Nested children fire leave events too; only reset once the pointer truly exits.
-		if (dragDepth <= 0) {
-			dragDepth = 0;
-			isDragging = false;
-		}
-	}
-
-	function handleOver(event: DragEvent) {
-		event.preventDefault();
-		if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
-	}
-
-	function handleDrop(event: DragEvent) {
-		event.preventDefault();
-		dragDepth = 0;
-		isDragging = false;
-		if (disabled) return;
-
-		const files = Array.from(event.dataTransfer?.files ?? []);
-		if (files.length > 0) onfiles(files);
-	}
-
-	function handlePick(event: Event) {
-		const target = event.currentTarget as HTMLInputElement;
-		const files = Array.from(target.files ?? []);
-		if (files.length > 0) onfiles(files);
-		// Reset so picking the same file twice still fires a change event.
-		target.value = '';
-	}
-
-	function openPicker() {
-		if (!disabled) input.click();
-	}
-
-	function handleKey(event: KeyboardEvent) {
-		if (event.key === 'Enter' || event.key === ' ') {
-			event.preventDefault();
-			openPicker();
-		}
+	function handleSurfaceClick(event: MouseEvent) {
+		// The button below already opens the picker; avoid opening it twice.
+		if ((event.target as HTMLElement).closest('button')) return;
+		if (!disabled) onpick();
 	}
 </script>
 
-<div
-	class="dropzone"
-	class:dropzone-active={isDragging}
-	role="button"
-	tabindex="0"
-	aria-label="Arrastra imágenes aquí o pulsa para elegirlas desde tu equipo"
-	aria-disabled={disabled}
-	ondragenter={handleEnter}
-	ondragleave={handleLeave}
-	ondragover={handleOver}
-	ondrop={handleDrop}
-	onclick={openPicker}
-	onkeydown={handleKey}
->
-	<input
-		bind:this={input}
-		type="file"
-		accept="image/*"
-		multiple
-		class="hidden"
-		onchange={handlePick}
-		tabindex="-1"
-	/>
-
-	<svg
-		class="mb-5 h-12 w-12 text-moss-600 transition-transform duration-300 ease-out"
-		class:scale-110={isDragging}
-		viewBox="0 0 48 48"
-		fill="none"
-		stroke="currentColor"
-		stroke-width="2"
-		stroke-linecap="round"
-		stroke-linejoin="round"
-		aria-hidden="true"
-	>
-		<path d="M24 32V10" />
-		<path d="M15 19l9-9 9 9" />
-		<path d="M8 32v4a4 4 0 004 4h24a4 4 0 004-4v-4" />
+<!-- Pointer convenience only: the "Elegir imágenes" button is the keyboard path, and
+     drag-and-drop plus paste are handled at window level by the page. -->
+<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+<div class="intake" class:intake-active={active} onclick={handleSurfaceClick}>
+	<svg class="intake-mark mb-6 h-14 w-14" viewBox="0 0 256 256" aria-hidden="true">
+		<path
+			class="fill-ink-900"
+			d="M33 95H117A8 8 0 0 1 125 103V125A6 6 0 0 0 131 131H153A8 8 0 0 1 161 139V223A16 16 0 0 1 145 239H33A16 16 0 0 1 17 223V111A16 16 0 0 1 33 95Z"
+		/>
+		<rect class="intake-px intake-px-1 fill-ember-500" x="171" y="49" width="36" height="36" rx="7" />
+		<rect class="intake-px intake-px-2 fill-ember-500" x="215" y="17" width="24" height="24" rx="5" />
+		<rect class="intake-px-extra intake-px-3 fill-ember-400" x="131" y="99" width="20" height="20" rx="4" />
+		<rect class="intake-px-extra intake-px-4 fill-ember-400" x="95" y="99" width="16" height="16" rx="3" />
 	</svg>
 
-	<p class="display-md mb-2 text-ink-900">
-		{isDragging ? 'Suelta las imágenes' : 'Arrastra tus imágenes aquí'}
-	</p>
+	<h1 class="text-3xl sm:text-4xl">
+		{active ? 'Suéltalas aquí' : 'Suelta tus imágenes'}
+	</h1>
+	<p class="mt-3 text-base text-ink-600">Salen en WebP, más livianas, sin salir de tu equipo.</p>
 
-	<p class="prose-measure text-sm leading-relaxed text-ink-600">
-		JPG, PNG, GIF, AVIF, BMP, TIFF o SVG. Puedes soltar varias a la vez o
-		<span class="font-semibold text-moss-700 underline underline-offset-4">elegirlas desde tu equipo</span>.
-	</p>
+	<div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+		<button type="button" class="btn btn-dark" onclick={onpick} {disabled}>Elegir imágenes</button>
+		<span class="flex items-center gap-1.5 text-sm text-ink-500">
+			o pega con <kbd class="kbd">{isMac ? '⌘' : 'Ctrl'}</kbd><kbd class="kbd">V</kbd>
+		</span>
+	</div>
 
-	<p class="mt-4 text-xs font-medium text-ink-600">Hasta 40 MB por imagen</p>
+	<p class="num mt-10 text-xs text-ink-500">
+		JPG · PNG · GIF · AVIF · BMP · TIFF · SVG — hasta 40 MB cada una
+	</p>
 </div>

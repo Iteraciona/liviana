@@ -11,6 +11,12 @@ export function savingsPercent(sourceSize: number, outputSize: number): number {
 	return Math.round(((sourceSize - outputSize) / sourceSize) * 100);
 }
 
+/** How many times lighter the output is, e.g. "4.3×". Never below 1.0× (no invented savings). */
+export function formatRatio(sourceSize: number, outputSize: number): string {
+	if (outputSize <= 0) return '1.0×';
+	return `${Math.max(1, sourceSize / outputSize).toFixed(1)}×`;
+}
+
 /** Replaces any file extension with .webp, preserving dots inside the base name. */
 export function toWebpName(filename: string): string {
 	const lastDot = filename.lastIndexOf('.');

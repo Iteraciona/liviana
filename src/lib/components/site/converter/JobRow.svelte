@@ -5,121 +5,97 @@
 
 	interface Props {
 		job: ConversionJob;
+		selected: boolean;
+		onselect: (id: string) => void;
 	}
 
-	let { job }: Props = $props();
+	let { job, selected, onselect }: Props = $props();
+
+	let thumbUrl = $state<string | null>(null);
+	let thumbFailed = $state(false);
+
+	$effect(() => {
+		const url = URL.createObjectURL(job.file);
+		thumbUrl = url;
+		return () => URL.revokeObjectURL(url);
+	});
 
 	const savings = $derived(
 		job.outputSize === null ? 0 : savingsPercent(job.sourceSize, job.outputSize)
 	);
 </script>
 
-<li class="panel flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:gap-5">
-	<div
-		class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-ink-200 bg-ink-100"
+<li class="job" class:job-selected={selected}>
+	<button
+		type="button"
+		class="flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-lg p-2 text-left"
+		aria-pressed={selected}
+		aria-label="Ver {job.name} en la comparación"
+		onclick={() => onselect(job.id)}
 	>
-		{#if job.outputUrl}
-			<img src={job.outputUrl} alt="Vista previa de {job.name}" class="h-full w-full object-cover" />
-		{:else if job.status === 'working'}
-			<span
-				class="h-6 w-6 rounded-full border-2 border-ink-300 border-t-ember-600 spin-slow"
-				aria-hidden="true"
-			></span>
-		{:else}
-			<svg
-				class="h-6 w-6 text-ink-400"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-				aria-hidden="true"
-			>
-				<rect x="3" y="4" width="18" height="16" rx="2" />
-				<circle cx="8.5" cy="9.5" r="1.5" />
-				<path d="M21 16l-5-5-6 6" />
-			</svg>
-		{/if}
-	</div>
+		<span class="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md bg-ink-150">
+			{#if thumbUrl && !thumbFailed}
+				<img src={thumbUrl} alt="" class="h-full w-full object-cover" onerror={() => (thumbFailed = true)} />
+			{/if}
+			{#if job.status === 'working'}
+				<span class="absolute inset-0 grid place-items-center bg-ink-900/55" aria-hidden="true">
+					<span class="job-working">
+						<span class="job-working-block"></span>
+						<span class="job-working-cell"></span>
+					</span>
+				</span>
+			{/if}
+		</span>
 
-	<div class="min-w-0 flex-1">
-		<p class="truncate font-semibold text-ink-900" title={job.name}>
-			{truncateMiddle(job.name, 40)}
-		</p>
-
-		<p class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-ink-600">
-			<span class="tabular-nums">{formatBytes(job.sourceSize)}</span>
-
-			{#if job.status === 'done' && job.outputSize !== null}
-				<span aria-hidden="true">→</span>
-				<span class="font-semibold tabular-nums text-ink-900">{formatBytes(job.outputSize)}</span>
-				{#if job.width && job.height}
-					<span class="text-ink-400" aria-hidden="true">·</span>
-					<span class="tabular-nums">{job.width} × {job.height}</span>
+		<span class="min-w-0 flex-1">
+			<span class="block truncate text-sm font-medium text-ink-900" title={job.name}>
+				{truncateMiddle(job.name, 30)}
+			</span>
+			<span class="mt-0.5 flex items-center gap-1.5 text-xs text-ink-500">
+				{#if job.status === 'done' && job.outputSize !== null}
+					<span class="num">{formatBytes(job.sourceSize)} → <span class="text-ink-900">{formatBytes(job.outputSize)}</span></span>
+					{#if savings > 0}
+						<span class="badge-win">−{savings}%</span>
+					{:else}
+						<span class="badge-neutral">ya venía liviana</span>
+					{/if}
+				{:else if job.status === 'failed'}
+					<span class="badge-fail">No se pudo</span>
+				{:else if job.status === 'working'}
+					<span>Convirtiendo…</span>
+				{:else}
+					<span class="num">{formatBytes(job.sourceSize)}</span>
 				{/if}
-			{:else if job.status === 'working'}
-				<span class="text-ember-700">Convirtiendo…</span>
-			{:else if job.status === 'queued'}
-				<span>En espera</span>
-			{/if}
-		</p>
+			</span>
+		</span>
+	</button>
 
-		{#if job.status === 'failed' && job.error}
-			<p class="mt-1 text-sm font-medium text-danger-700">{job.error}</p>
-		{/if}
-	</div>
-
-	<div class="flex shrink-0 items-center gap-2">
-		{#if job.status === 'done'}
-			{#if savings > 0}
-				<span class="badge-win">−{savings}% de peso</span>
-			{:else}
-				<span class="badge-warn">Ya estaba optimizada</span>
-			{/if}
-
-			<button
-				type="button"
-				class="btn-ghost px-3 py-2"
-				onclick={() => queue.downloadOne(job.id)}
-				aria-label="Descargar {job.outputName}"
-			>
-				<svg
-					class="h-4 w-4"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					aria-hidden="true"
-				>
-					<path d="M12 3v12" />
-					<path d="M7 11l5 5 5-5" />
-					<path d="M4 20h16" />
-				</svg>
-				<span class="hidden sm:inline">Descargar</span>
-			</button>
-		{:else if job.status === 'failed'}
-			<span class="badge-fail">No se pudo</span>
-		{/if}
-
+	{#if job.status === 'done'}
 		<button
 			type="button"
-			class="btn-quiet"
-			onclick={() => queue.removeJob(job.id)}
-			aria-label="Quitar {job.name} de la lista"
+			class="icon-btn"
+			onclick={() => queue.downloadOne(job.id)}
+			aria-label="Descargar {job.outputName}"
+			title="Descargar"
 		>
-			<svg
-				class="h-4 w-4"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				aria-hidden="true"
-			>
-				<path d="M6 6l12 12" />
-				<path d="M18 6L6 18" />
+			<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+				<path d="M12 4v11" />
+				<path d="M7 10l5 5 5-5" />
+				<path d="M5 20h14" />
 			</svg>
 		</button>
-	</div>
+	{/if}
+
+	<button
+		type="button"
+		class="icon-btn"
+		onclick={() => queue.removeJob(job.id)}
+		aria-label="Quitar {job.name} de la lista"
+		title="Quitar"
+	>
+		<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+			<path d="M6 6l12 12" />
+			<path d="M18 6L6 18" />
+		</svg>
+	</button>
 </li>

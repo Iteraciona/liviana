@@ -1,5 +1,8 @@
 import { convertToWebp, createJob, validateFile } from '$lib/services/converter';
 import { buildZip, downloadBlob } from '$lib/services/zip';
+import { watchNetwork } from '$lib/services/network-watch';
+import { restore as restoreTab, showDone, showProgress } from '$lib/services/tab-status';
+import { formatRatio } from '$lib/utils/format';
 import { QUALITY_PRESETS, type ConversionJob } from '$lib/utils/types';
 
 /** Runs conversions a few at a time so a large batch never freezes the main thread. */
@@ -12,6 +15,8 @@ class ConversionQueue {
 	useCustom = $state<boolean>(false);
 	isRunning = $state<boolean>(false);
 	rejected = $state<{ name: string; reason: string }[]>([]);
+	/** Network requests measured during the last run; null when it could not be measured. */
+	networkRequests = $state<number | null>(null);
 
 	readonly completed = $derived(this.jobs.filter((job) => job.status === 'done'));
 	readonly failed = $derived(this.jobs.filter((job) => job.status === 'failed'));
@@ -67,6 +72,8 @@ class ConversionQueue {
 	}
 
 	clear(): void {
+		restoreTab();
+		this.networkRequests = null;
 		for (const job of this.jobs) {
 			if (job.outputUrl) URL.revokeObjectURL(job.outputUrl);
 		}
@@ -122,10 +129,16 @@ class ConversionQueue {
 		if (this.isRunning || this.jobs.length === 0) return;
 
 		this.isRunning = true;
+		this.networkRequests = null;
 		this.resetResults();
 
 		const snapshot = [...this.jobs];
+		const total = snapshot.length;
 		let cursor = 0;
+		let finished = 0;
+
+		const network = watchNetwork();
+		showProgress(0, total);
 
 		const worker = async (): Promise<void> => {
 			while (cursor < snapshot.length) {
@@ -133,13 +146,22 @@ class ConversionQueue {
 				// The job may have been removed from the queue while the batch was running.
 				if (!this.jobs.some((item) => item.id === job.id)) continue;
 				await this.runJob(job);
+				finished++;
+				if (finished < total) showProgress(finished, total);
 			}
 		};
 
 		const lanes = Array.from({ length: Math.min(CONCURRENCY, snapshot.length) }, worker);
 		await Promise.all(lanes);
 
+		this.networkRequests = network ? network.stop() : null;
 		this.isRunning = false;
+
+		if (this.completed.length > 0) {
+			showDone(`${formatRatio(this.totalSource, this.totalOutput)} más livianas`);
+		} else {
+			restoreTab();
+		}
 	}
 
 	downloadOne(id: string): void {

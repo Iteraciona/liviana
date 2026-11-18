@@ -1,69 +1,70 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap');
 
 @import 'tailwindcss';
 
 @theme {
-	/* Brand: deep moss green. Committed strategy — carries the hero surface. */
-	--color-moss-50: oklch(0.97 0.014 145);
-	--color-moss-100: oklch(0.94 0.028 145);
-	--color-moss-200: oklch(0.88 0.048 145);
-	--color-moss-300: oklch(0.79 0.07 145);
-	--color-moss-400: oklch(0.66 0.088 145);
-	--color-moss-500: oklch(0.55 0.095 145);
-	--color-moss-600: oklch(0.47 0.092 145);
-	--color-moss-700: oklch(0.39 0.078 145);
-	--color-moss-800: oklch(0.31 0.06 145);
-	--color-moss-900: oklch(0.24 0.045 145);
-	--color-moss-950: oklch(0.17 0.032 145);
+	/* Neutrals carry the interface: chroma 0 so photos are judged against true gray. */
+	--color-ink-50: oklch(0.985 0 0);
+	--color-ink-100: oklch(0.965 0 0);
+	--color-ink-150: oklch(0.94 0 0);
+	--color-ink-200: oklch(0.91 0 0);
+	--color-ink-300: oklch(0.84 0 0);
+	--color-ink-400: oklch(0.7 0 0);
+	--color-ink-500: oklch(0.56 0 0);
+	--color-ink-600: oklch(0.46 0 0);
+	--color-ink-700: oklch(0.36 0 0);
+	--color-ink-800: oklch(0.26 0 0);
+	--color-ink-900: oklch(0.19 0 0);
+	--color-ink-950: oklch(0.13 0 0);
 
-	/* Accent: burnt amber. Used sparingly — CTA, active quality, progress. */
+	/* Ember, from the logo pixels: primary action and focus only. */
 	--color-ember-50: oklch(0.97 0.022 62);
 	--color-ember-100: oklch(0.94 0.045 62);
-	--color-ember-200: oklch(0.88 0.082 62);
 	--color-ember-300: oklch(0.81 0.12 62);
 	--color-ember-400: oklch(0.73 0.15 55);
 	--color-ember-500: oklch(0.66 0.163 48);
 	--color-ember-600: oklch(0.58 0.155 44);
 	--color-ember-700: oklch(0.48 0.13 41);
-	--color-ember-800: oklch(0.39 0.1 40);
 	--color-ember-900: oklch(0.31 0.076 40);
 
-	/* Neutrals: true cold-neutral, chroma 0. Not cream, not sand, not paper. */
-	--color-ink-50: oklch(0.985 0 0);
-	--color-ink-100: oklch(0.96 0 0);
-	--color-ink-200: oklch(0.92 0 0);
-	--color-ink-300: oklch(0.85 0 0);
-	--color-ink-400: oklch(0.7 0 0);
-	--color-ink-500: oklch(0.56 0 0);
-	--color-ink-600: oklch(0.45 0 0);
-	--color-ink-700: oklch(0.36 0 0);
-	--color-ink-800: oklch(0.26 0 0);
-	--color-ink-900: oklch(0.18 0 0);
-	--color-ink-950: oklch(0.12 0 0);
+	/* Moss, from the logo block: reserved for the "saved weight" signal. */
+	--color-moss-50: oklch(0.97 0.014 145);
+	--color-moss-100: oklch(0.94 0.028 145);
+	--color-moss-600: oklch(0.47 0.092 145);
+	--color-moss-700: oklch(0.39 0.078 145);
+	--color-moss-800: oklch(0.31 0.06 145);
+	--color-moss-900: oklch(0.24 0.045 145);
 
+	--color-danger-50: oklch(0.97 0.02 27);
 	--color-danger-500: oklch(0.58 0.2 27);
 	--color-danger-700: oklch(0.45 0.17 27);
 
-	--font-display: 'Fraunces', Georgia, serif;
-	--font-body: 'Work Sans', system-ui, sans-serif;
+	--font-sans: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
+	--font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
 	--ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
 	--ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+	/* Semantic z-index scale. */
+	--z-index-sticky: 10;
+	--z-index-overlay: 40;
 }
 
 @layer base {
 	html {
-		scroll-behavior: smooth;
+		color-scheme: light;
 	}
 
 	body {
-		@apply bg-white font-body text-ink-800 antialiased;
+		@apply bg-white font-sans text-ink-800 antialiased;
+		font-size: 15px;
 	}
 
 	h1,
 	h2,
 	h3 {
-		@apply font-display text-balance;
+		@apply font-semibold tracking-tight text-ink-900;
+		text-wrap: balance;
 	}
 
 	p {
@@ -71,7 +72,7 @@
 	}
 
 	::selection {
-		@apply bg-ember-300 text-moss-950;
+		@apply bg-ember-100 text-ink-950;
 	}
 
 	:focus-visible {
@@ -81,44 +82,238 @@
 
 @layer utilities {
 	/* --- Layout --- */
-	.shell {
-		@apply mx-auto w-full max-w-6xl px-6 sm:px-8;
-	}
-
 	.shell-narrow {
-		@apply mx-auto w-full max-w-3xl px-6 sm:px-8;
+		@apply mx-auto w-full max-w-3xl px-5 sm:px-8;
 	}
 
-	.prose-measure {
-		@apply max-w-prose;
+	.num {
+		@apply font-mono tabular-nums;
+		font-feature-settings: 'zero' 0;
 	}
 
-	/* --- Typography --- */
-	.display-xl {
-		@apply font-display text-5xl leading-none font-semibold tracking-tight sm:text-6xl lg:text-7xl;
+	/* --- Controls --- */
+	.btn {
+		@apply inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium whitespace-nowrap transition-colors duration-150 select-none disabled:cursor-not-allowed disabled:opacity-40;
 	}
 
-	.display-lg {
-		@apply font-display text-4xl leading-tight font-semibold tracking-tight sm:text-5xl;
+	.btn-primary {
+		@apply bg-ember-600 text-white enabled:hover:bg-ember-700;
 	}
 
-	.display-md {
-		@apply font-display text-2xl leading-snug font-semibold tracking-tight sm:text-3xl;
+	.btn-dark {
+		@apply bg-ink-900 text-white enabled:hover:bg-ink-800;
 	}
 
-	/* No color here on purpose: the call site owns it, and a color baked into the
-	   utility would win over the class set in the markup. */
-	.lede {
-		@apply text-lg leading-relaxed sm:text-xl;
+	.btn-outline {
+		@apply border border-ink-200 bg-white text-ink-800 enabled:hover:border-ink-300 enabled:hover:bg-ink-50;
+	}
+
+	.btn-quiet {
+		@apply text-ink-600 enabled:hover:bg-ink-100 enabled:hover:text-ink-900;
+	}
+
+	.icon-btn {
+		@apply inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md text-ink-500 transition-colors duration-150 hover:bg-ink-150 hover:text-ink-900 disabled:cursor-not-allowed disabled:opacity-40;
+	}
+
+	.kbd {
+		@apply inline-flex h-5 min-w-5 items-center justify-center rounded border border-b-2 border-ink-300 bg-white px-1 font-mono text-[11px] font-medium text-ink-700;
+	}
+
+	.label {
+		@apply text-xs font-medium text-ink-500;
+	}
+
+	/* Segmented control for the quality presets. */
+	.segmented {
+		@apply grid grid-cols-4 gap-1 rounded-lg bg-ink-100 p-1;
+	}
+
+	.segment {
+		@apply flex cursor-pointer flex-col items-center gap-0.5 rounded-md px-1 py-2 text-[13px] font-medium text-ink-600 transition-colors duration-150 hover:text-ink-900 disabled:cursor-not-allowed disabled:opacity-40;
+	}
+
+	.segment-active {
+		@apply bg-white text-ink-900 shadow-[0_1px_2px_oklch(0_0_0/0.08)];
+	}
+
+	.slider {
+		@apply h-1.5 w-full cursor-pointer appearance-none rounded-full bg-ink-200 accent-ember-600;
+	}
+
+	.slider::-webkit-slider-thumb {
+		@apply h-4 w-4 appearance-none rounded-full border-2 border-white bg-ember-600 shadow;
+	}
+
+	.slider::-moz-range-thumb {
+		@apply h-4 w-4 appearance-none rounded-full border-2 border-white bg-ember-600 shadow;
+	}
+
+	/* --- Badges --- */
+	.badge-win {
+		@apply inline-flex items-center rounded px-1.5 py-0.5 font-mono text-[11px] font-medium text-moss-800 tabular-nums;
+		background: var(--color-moss-100);
+	}
+
+	.badge-neutral {
+		@apply inline-flex items-center rounded bg-ink-150 px-1.5 py-0.5 text-[11px] font-medium text-ink-700;
+	}
+
+	.badge-fail {
+		@apply inline-flex items-center rounded bg-danger-50 px-1.5 py-0.5 text-[11px] font-medium text-danger-700;
+	}
+
+	/* --- Empty state: the whole stage is the drop target --- */
+	.intake {
+		@apply relative flex flex-1 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-ink-300 bg-ink-50 px-6 py-16 text-center transition-colors duration-200;
+	}
+
+	.intake:hover {
+		@apply border-ink-400 bg-ink-100;
+	}
+
+	.intake-active {
+		@apply border-ember-500 bg-ember-50;
+	}
+
+	.intake-mark {
+		overflow: visible;
+	}
+
+	.intake-px,
+	.intake-px-extra {
+		transform-box: fill-box;
+		transition: transform 0.45s var(--ease-out-expo);
+	}
+
+	.intake-px-extra {
+		opacity: 0;
+		transition:
+			transform 0.5s var(--ease-out-expo),
+			opacity 0.3s var(--ease-out-quart);
+	}
+
+	.intake:hover .intake-px-1 {
+		transform: translate(6px, -6px);
+	}
+
+	.intake:hover .intake-px-2 {
+		transform: translate(12px, -12px);
+	}
+
+	.intake-active .intake-px-1 {
+		transform: translate(14px, -14px);
+	}
+
+	.intake-active .intake-px-2 {
+		transform: translate(30px, -30px);
+	}
+
+	.intake-active .intake-px-extra {
+		opacity: 1;
+	}
+
+	.intake-active .intake-px-3 {
+		transform: translate(44px, -18px);
+	}
+
+	.intake-active .intake-px-4 {
+		transform: translate(22px, -46px);
+	}
+
+	/* Full-window target while files are dragged over a populated workspace. */
+	.drop-overlay {
+		@apply pointer-events-none fixed inset-3 flex items-center justify-center rounded-xl border-2 border-dashed border-ember-500 bg-white/90 text-lg font-medium text-ink-900;
+		z-index: var(--z-index-overlay);
+	}
+
+	/* --- Compare stage --- */
+	/* container-type: size needs a definite height: fixed on narrow screens, where the
+	   stage sits in normal flow, and taken from the flex row on large ones. */
+	.stage-view {
+		@apply relative grid h-[52vh] min-h-0 place-items-center overflow-hidden p-4 sm:p-6 lg:h-auto lg:flex-1;
+		container-type: size;
+	}
+
+	/* Auto margins (below) centre a small image and fall back to 0 for a big one, so
+	   the whole picture stays scrollable instead of overflowing past the top-left edge. */
+	.stage-view-actual {
+		@apply place-items-start overflow-auto;
+	}
+
+	/* Sized to the image's own aspect ratio so the divider maps 1:1 onto the picture. */
+	.stage-frame {
+		@apply relative overflow-hidden rounded-sm select-none;
+		aspect-ratio: var(--ratio);
+		width: min(100cqw, 100cqh * var(--ratio));
+		touch-action: none;
+		background-color: oklch(0.98 0 0);
+		background-image:
+			conic-gradient(oklch(0.93 0 0) 25%, transparent 0 50%, oklch(0.93 0 0) 0 75%, transparent 0);
+		background-size: 16px 16px;
+		box-shadow: 0 1px 3px oklch(0 0 0 / 0.12);
+	}
+
+	.stage-view-actual .stage-frame {
+		margin: auto;
+		width: calc(var(--w) * 1px);
+		height: calc(var(--h) * 1px);
+		aspect-ratio: auto;
+	}
+
+	.stage-img {
+		@apply pointer-events-none absolute inset-0 h-full w-full object-contain;
+	}
+
+	.stage-divider {
+		@apply pointer-events-none absolute inset-y-0 w-0.5 -translate-x-1/2 bg-white;
+		box-shadow: 0 0 0 1px oklch(0 0 0 / 0.15);
+	}
+
+	.stage-knob {
+		@apply absolute top-1/2 left-1/2 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-ink-800;
+		box-shadow: 0 1px 4px oklch(0 0 0 / 0.25);
+	}
+
+	.stage:has(.stage-range:focus-visible) .stage-knob {
+		@apply outline-2 outline-offset-2 outline-ember-600;
+	}
+
+	.stage-tag {
+		@apply inline-flex items-center gap-1.5 rounded-md bg-white px-2 py-1 text-xs font-medium text-ink-800;
+		box-shadow: 0 1px 2px oklch(0 0 0 / 0.1);
+	}
+
+	/* --- Job list --- */
+	.job {
+		@apply flex items-center gap-1 rounded-lg pr-1 transition-colors duration-150 hover:bg-ink-100;
+	}
+
+	.job-selected {
+		@apply bg-ink-100;
+	}
+
+	.job-working {
+		@apply relative block h-4 w-4;
+	}
+
+	.job-working-block {
+		@apply absolute inset-0 rounded-[2px] bg-white;
+		clip-path: polygon(0 0, 75% 0, 75% 25%, 100% 25%, 100% 100%, 0 100%);
+	}
+
+	.job-working-cell {
+		@apply absolute top-0 right-0 h-1/4 w-1/4 rounded-[1px] bg-ember-400;
+		animation: cell-lift 1s var(--ease-out-expo) infinite;
 	}
 
 	/* --- Legal documents --- */
 	.legal-body h2 {
-		@apply mt-12 mb-4 font-display text-2xl font-semibold text-ink-900 first:mt-0;
+		@apply mt-12 mb-4 text-xl font-semibold text-ink-900 first:mt-0;
 	}
 
 	.legal-body h3 {
-		@apply mt-8 mb-3 font-display text-lg font-semibold text-ink-900;
+		@apply mt-8 mb-3 text-base font-semibold text-ink-900;
 	}
 
 	.legal-body p {
@@ -130,128 +325,23 @@
 	}
 
 	.legal-body a {
-		@apply font-semibold text-moss-700 underline underline-offset-4 transition-colors duration-200 hover:text-ember-700;
+		@apply font-medium text-ink-900 underline decoration-ink-300 underline-offset-4 transition-colors duration-150 hover:decoration-ember-600;
 	}
 
 	.legal-body strong {
 		@apply font-semibold text-ink-900;
 	}
 
-	/* Callout for the one thing that actually matters in both documents. */
 	.legal-note {
-		@apply my-8 rounded-xl border border-moss-200 bg-moss-50 p-6;
+		@apply my-8 rounded-lg border border-ink-200 bg-ink-50 p-5;
 	}
 
 	.legal-note p {
-		@apply mb-0 text-moss-900;
+		@apply mb-0 text-ink-800;
 	}
 
-	/* --- Surfaces --- */
-	.panel {
-		@apply rounded-xl border border-ink-200 bg-white;
-	}
-
-	.panel-sunk {
-		@apply rounded-xl border border-ink-200 bg-ink-50;
-	}
-
-	/* --- Controls --- */
-	.btn {
-		@apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-semibold transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-40;
-	}
-
-	.btn-primary {
-		@apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-semibold transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-40;
-		@apply bg-ember-600 text-white hover:bg-ember-700;
-	}
-
-	.btn-solid {
-		@apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-semibold transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-40;
-		@apply bg-moss-800 text-white hover:bg-moss-900;
-	}
-
-	.btn-ghost {
-		@apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-semibold transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-40;
-		@apply border border-ink-300 bg-white text-ink-700 hover:border-ink-400 hover:bg-ink-50;
-	}
-
-	.btn-quiet {
-		@apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg text-sm font-semibold transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-40;
-		@apply px-3 py-2 text-ink-500 hover:bg-ink-100 hover:text-ink-800;
-	}
-
-	/* --- Dropzone --- */
-	.dropzone {
-		@apply relative flex min-h-72 w-full cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-ink-300 bg-ink-50 px-6 py-14 text-center transition-all duration-300 ease-out;
-	}
-
-	.dropzone:hover {
-		@apply border-moss-400 bg-moss-50;
-	}
-
-	.dropzone-active {
-		@apply scale-[1.01] border-ember-500 bg-ember-50 shadow-lg;
-	}
-
-	/* --- Quality selector --- */
-	.quality-option {
-		@apply flex cursor-pointer flex-col gap-1 rounded-lg border border-ink-200 bg-white px-4 py-3 text-left transition-colors duration-200 hover:border-ink-400;
-	}
-
-	.quality-option-active {
-		@apply border-moss-700 bg-moss-800 text-white hover:border-moss-700;
-	}
-
-	/* --- Badges --- */
-	.badge {
-		@apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold;
-	}
-
-	.badge-win {
-		@apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold;
-		@apply bg-moss-100 text-moss-900;
-	}
-
-	.badge-warn {
-		@apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold;
-		@apply bg-ember-100 text-ember-900;
-	}
-
-	.badge-fail {
-		@apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold;
-		@apply bg-ink-100 text-danger-700;
-	}
-
-	/* --- Range input --- */
-	.slider {
-		@apply h-1.5 w-full cursor-pointer appearance-none rounded-full bg-ink-200 accent-ember-600;
-	}
-
-	.slider::-webkit-slider-thumb {
-		@apply h-5 w-5 appearance-none rounded-full border-2 border-white bg-ember-600 shadow-md;
-	}
-
-	.slider::-moz-range-thumb {
-		@apply h-5 w-5 appearance-none rounded-full border-2 border-white bg-ember-600 shadow-md;
-	}
-
-	/* --- Motion primitives (GSAP sets the final state; these are CSS fallbacks) --- */
-	.spin-slow {
-		animation: spin 1.1s linear infinite;
-	}
-
-	.stripe-drift {
-		background-image: linear-gradient(
-			115deg,
-			transparent 25%,
-			var(--color-ember-400) 25%,
-			var(--color-ember-400) 50%,
-			transparent 50%,
-			transparent 75%,
-			var(--color-ember-400) 75%
-		);
-		background-size: 1.25rem 1.25rem;
-		animation: drift 0.7s linear infinite;
+	.spin {
+		animation: spin 0.9s linear infinite;
 	}
 }
 
@@ -261,19 +351,20 @@
 	}
 }
 
-@keyframes drift {
-	to {
-		background-position: 1.25rem 0;
+@keyframes cell-lift {
+	0% {
+		transform: translate(0, 0);
+		opacity: 1;
+	}
+	100% {
+		transform: translate(140%, -140%) scale(0.5);
+		opacity: 0;
 	}
 }
 
 @media (prefers-reduced-motion: reduce) {
-	html {
-		scroll-behavior: auto;
-	}
-
-	.spin-slow,
-	.stripe-drift {
+	.spin,
+	.job-working-cell {
 		animation: none;
 	}
 

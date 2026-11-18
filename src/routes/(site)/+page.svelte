@@ -1,90 +1,119 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import CompareStage from '$lib/components/site/converter/CompareStage.svelte';
 	import Dropzone from '$lib/components/site/converter/Dropzone.svelte';
-	import QualityPicker from '$lib/components/site/converter/QualityPicker.svelte';
-	import QueuePanel from '$lib/components/site/converter/QueuePanel.svelte';
+	import Sidebar from '$lib/components/site/converter/Sidebar.svelte';
 	import { queue } from '$lib/stores/queue.svelte';
 	import { supportsWebp } from '$lib/services/converter';
 
 	let canEncode = $state(true);
-	let hero: HTMLElement;
-	let workbench: HTMLElement;
-	let explainer: HTMLElement;
+	let picker: HTMLInputElement;
+	let isDragging = $state(false);
+	let dragDepth = 0;
+	let selectedId = $state<string | null>(null);
 
-	function handleFiles(files: File[]) {
+	const hasJobs = $derived(queue.jobs.length > 0);
+	const canAdd = $derived(canEncode && !queue.isRunning);
+
+	// Falls back to the first job when nothing is selected or the selection was removed.
+	const selected = $derived(
+		queue.jobs.find((job) => job.id === selectedId) ?? queue.jobs[0] ?? null
+	);
+
+	function addFiles(files: File[]) {
+		if (!canAdd || files.length === 0) return;
+		const firstNew = queue.jobs.length;
 		queue.addFiles(files);
+		const added = queue.jobs[firstNew];
+		if (added) selectedId = added.id;
+	}
+
+	function openPicker() {
+		if (canAdd) picker.click();
+	}
+
+	function handlePick(event: Event) {
+		const input = event.currentTarget as HTMLInputElement;
+		addFiles(Array.from(input.files ?? []));
+		// Reset so picking the same file twice still fires a change event.
+		input.value = '';
+	}
+
+	// --- Window-level intake: drop anywhere, paste anywhere ---
+
+	function carriesFiles(event: DragEvent): boolean {
+		return event.dataTransfer?.types.includes('Files') ?? false;
+	}
+
+	function handleDragEnter(event: DragEvent) {
+		if (!carriesFiles(event)) return;
+		event.preventDefault();
+		dragDepth++;
+		isDragging = canAdd;
+	}
+
+	function handleDragOver(event: DragEvent) {
+		if (!carriesFiles(event)) return;
+		event.preventDefault();
+		if (event.dataTransfer) event.dataTransfer.dropEffect = canAdd ? 'copy' : 'none';
+	}
+
+	function handleDragLeave(event: DragEvent) {
+		if (!carriesFiles(event)) return;
+		// Nested elements fire leave events too; only reset once the pointer truly exits.
+		dragDepth = Math.max(0, dragDepth - 1);
+		if (dragDepth === 0) isDragging = false;
+	}
+
+	function handleDrop(event: DragEvent) {
+		if (!carriesFiles(event)) return;
+		event.preventDefault();
+		dragDepth = 0;
+		isDragging = false;
+		addFiles(Array.from(event.dataTransfer?.files ?? []));
+	}
+
+	// Screenshots on the clipboard arrive as "image.png"; give each one a readable name.
+	function handlePaste(event: ClipboardEvent) {
+		const target = event.target as HTMLElement | null;
+		if (target?.closest('input, textarea, [contenteditable="true"]')) return;
+
+		const images = Array.from(event.clipboardData?.files ?? []).filter((file) =>
+			file.type.startsWith('image/')
+		);
+		if (images.length === 0) return;
+
+		event.preventDefault();
+		const stamp = new Date().toTimeString().slice(0, 8).replaceAll(':', '-');
+		addFiles(
+			images.map((file, index) => {
+				if (file.name && file.name !== 'image.png') return file;
+				const extension = file.type.split('/')[1] ?? 'png';
+				const suffix = images.length > 1 ? `-${index + 1}` : '';
+				return new File([file], `captura-${stamp}${suffix}.${extension}`, { type: file.type });
+			})
+		);
 	}
 
 	onMount(() => {
 		canEncode = supportsWebp();
 
-		const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-		if (reduced) return;
-
-		let cleanup: (() => void) | undefined;
-
-		// GSAP is loaded lazily so the converter stays usable even if the bundle is slow.
-		(async () => {
-			const { gsap } = await import('gsap');
-			const { ScrollTrigger } = await import('gsap/ScrollTrigger');
-
-			gsap.registerPlugin(ScrollTrigger);
-
-			const context = gsap.context(() => {
-				// Hero reveal: animates FROM a shifted state, so the default render is already correct.
-				gsap.from(hero.querySelectorAll('[data-reveal]'), {
-					y: 24,
-					opacity: 0,
-					duration: 0.9,
-					ease: 'expo.out',
-					stagger: 0.09
-				});
-
-				gsap.from(workbench, {
-					y: 40,
-					opacity: 0,
-					duration: 1,
-					ease: 'expo.out',
-					scrollTrigger: {
-						trigger: workbench,
-						start: 'top 85%',
-						once: true
-					}
-				});
-
-				ScrollTrigger.batch(explainer.querySelectorAll('[data-step]'), {
-					start: 'top 88%',
-					once: true,
-					onEnter: (batch) =>
-						gsap.from(batch, {
-							y: 32,
-							opacity: 0,
-							duration: 0.8,
-							ease: 'expo.out',
-							stagger: 0.12,
-							overwrite: true
-						})
-				});
-
-				// Subtle parallax on the hero rule; scrubbed so it tracks the scroll exactly.
-				gsap.to('[data-parallax]', {
-					yPercent: 18,
-					ease: 'none',
-					scrollTrigger: {
-						trigger: hero,
-						start: 'top top',
-						end: 'bottom top',
-						scrub: 0.6
-					}
-				});
-			});
-
-			cleanup = () => context.revert();
-		})();
-
-		return () => cleanup?.();
+		// A note for whoever opens the console: the privacy claim can be checked right there.
+		console.info(
+			'%cLiviana%c\nAbre la pestaña Red y convierte algo. Spoiler: no se va a mover nada.',
+			'font: 600 16px Geist, system-ui, sans-serif; color: #df6d25',
+			'font: 13px system-ui, sans-serif'
+		);
 	});
 </script>
+
+<svelte:window
+	ondragenter={handleDragEnter}
+	ondragover={handleDragOver}
+	ondragleave={handleDragLeave}
+	ondrop={handleDrop}
+	onpaste={handlePaste}
+/>
 
 <svelte:head>
 	<title>Liviana — Convierte tus imágenes a WebP sin subirlas a ningún lado</title>
@@ -102,106 +131,40 @@
 	<meta name="twitter:card" content="summary" />
 </svelte:head>
 
-<!-- Hero -->
-<section bind:this={hero} class="relative overflow-hidden bg-moss-900 text-white">
-	<div
-		data-parallax
-		class="pointer-events-none absolute inset-x-0 top-1/3 h-px bg-moss-700"
-		aria-hidden="true"
-	></div>
+<input
+	bind:this={picker}
+	type="file"
+	accept="image/*"
+	multiple
+	class="hidden"
+	tabindex="-1"
+	onchange={handlePick}
+/>
 
-	<div class="shell relative py-20 sm:py-28 lg:py-32">
-		<div data-reveal class="mb-10 flex items-center gap-3">
-			<img src="/favicon.svg" alt="" width="34" height="34" class="rounded-md" />
-			<span class="font-display text-2xl font-semibold tracking-tight text-white">Liviana</span>
-		</div>
-
-		<p data-reveal class="mb-6 text-sm font-semibold text-ember-300">
-			Sin cuentas, sin subidas, sin esperas
-		</p>
-
-		<h1 data-reveal class="display-xl prose-measure text-white">
-			Tus imágenes pesan de más. Arrástralas y quedan en WebP.
-		</h1>
-
-		<p data-reveal class="lede prose-measure mt-6 text-moss-100">
-			Suelta una o cien imágenes, elige cuánta calidad quieres conservar y descárgalas convertidas.
-			Todo el trabajo ocurre dentro de tu navegador, así que tus archivos nunca llegan a un servidor
-			ni hay nada que borrar después.
-		</p>
-
-		<div data-reveal class="mt-10 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm text-moss-200">
-			<span class="flex items-center gap-2">
-				<span class="h-1.5 w-1.5 rounded-full bg-ember-400" aria-hidden="true"></span>
-				JPG, PNG, GIF, AVIF, BMP, TIFF y SVG
-			</span>
-			<span class="flex items-center gap-2">
-				<span class="h-1.5 w-1.5 rounded-full bg-ember-400" aria-hidden="true"></span>
-				Cuatro niveles de calidad o el tuyo propio
-			</span>
-			<span class="flex items-center gap-2">
-				<span class="h-1.5 w-1.5 rounded-full bg-ember-400" aria-hidden="true"></span>
-				Descarga en lote como ZIP
-			</span>
-		</div>
+{#if !canEncode}
+	<div class="border-b border-danger-500/30 bg-danger-50 px-4 py-3 text-sm sm:px-6" role="alert">
+		<span class="font-medium text-danger-700">Este navegador no puede generar archivos WebP.</span>
+		<span class="text-ink-700">Prueba con una versión reciente de Chrome, Edge, Firefox o Safari.</span>
 	</div>
-</section>
+{/if}
 
-<!-- Workbench -->
-<section bind:this={workbench} class="shell -mt-10 pb-20">
-	{#if !canEncode}
-		<div class="panel mb-6 border-danger-500 bg-white p-5" role="alert">
-			<p class="font-semibold text-danger-700">Este navegador no puede generar archivos WebP.</p>
-			<p class="mt-1 text-sm text-ink-700">
-				Prueba con una versión reciente de Chrome, Edge, Firefox o Safari.
-			</p>
-		</div>
+{#if hasJobs && selected}
+	<h1 class="sr-only">Liviana: convierte tus imágenes a WebP</h1>
+	<div class="flex flex-1 flex-col lg:h-[calc(100dvh-3.5rem)] lg:flex-row">
+		<CompareStage job={selected} />
+		<Sidebar
+			selectedId={selected.id}
+			onselect={(id) => (selectedId = id)}
+			onadd={openPicker}
+			{canAdd}
+		/>
+	</div>
+
+	{#if isDragging}
+		<div class="drop-overlay" aria-hidden="true">Suelta para agregar a la lista</div>
 	{/if}
-
-	<div class="flex flex-col gap-8">
-		<div class="panel p-4 shadow-lg sm:p-6">
-			<Dropzone onfiles={handleFiles} disabled={queue.isRunning || !canEncode} />
-		</div>
-
-		{#if queue.jobs.length > 0}
-			<QualityPicker />
-			<QueuePanel />
-		{/if}
+{:else}
+	<div class="flex flex-1 flex-col p-3 sm:p-4" style="min-height: calc(100dvh - 3.5rem)">
+		<Dropzone active={isDragging} disabled={!canAdd} onpick={openPicker} />
 	</div>
-</section>
-
-<!-- Explainer -->
-<section bind:this={explainer} class="shell pb-28">
-	<h2 class="display-lg prose-measure mb-12 text-ink-900">
-		Qué pasa exactamente con tus archivos
-	</h2>
-
-	<div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
-		<div data-step>
-			<h3 class="display-md mb-3 text-ink-900">Se quedan contigo</h3>
-			<p class="text-sm leading-relaxed text-ink-700">
-				La conversión usa el motor gráfico de tu propio navegador. No hay carga al servidor, no hay
-				archivo temporal, no hay copia en ningún disco ajeno. No es una promesa de privacidad: es
-				que técnicamente no existe el envío.
-			</p>
-		</div>
-
-		<div data-step>
-			<h3 class="display-md mb-3 text-ink-900">Tú decides el equilibrio</h3>
-			<p class="text-sm leading-relaxed text-ink-700">
-				Cada nivel de calidad cambia cuánto detalle se conserva frente a cuánto pesa el resultado.
-				Puedes convertir el mismo lote varias veces con ajustes distintos y comparar el peso final
-				antes de descargar.
-			</p>
-		</div>
-
-		<div data-step>
-			<h3 class="display-md mb-3 text-ink-900">La transparencia se respeta</h3>
-			<p class="text-sm leading-relaxed text-ink-700">
-				Los PNG y SVG con fondo transparente conservan su canal alfa. Si una imagen ya estaba bien
-				optimizada y el WebP sale más pesado, te lo decimos en lugar de inventar un ahorro que no
-				existe.
-			</p>
-		</div>
-	</div>
-</section>
+{/if}

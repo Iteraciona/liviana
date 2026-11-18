@@ -2,89 +2,64 @@
 	import { queue } from '$lib/stores/queue.svelte';
 	import { QUALITY_PRESETS } from '$lib/utils/types';
 
+	const activePreset = $derived(QUALITY_PRESETS.find((preset) => preset.id === queue.presetId));
+
 	function pick(id: string) {
 		queue.presetId = id;
 		queue.useCustom = false;
 	}
-
-	function enableCustom() {
-		queue.useCustom = true;
-	}
 </script>
 
-<section class="panel p-6 sm:p-8" aria-labelledby="quality-heading">
-	<div class="mb-6 flex flex-wrap items-baseline justify-between gap-2">
-		<h2 id="quality-heading" class="display-md text-ink-900">Calidad de salida</h2>
-		<p class="text-sm text-ink-600">
-			Actual: <span class="font-semibold text-moss-700">{queue.qualityLabel}</span>
-		</p>
+<section aria-labelledby="quality-heading">
+	<div class="mb-2 flex items-baseline justify-between">
+		<h2 id="quality-heading" class="label">Calidad</h2>
+		<span class="num text-xs text-ink-500">{Math.round(queue.quality * 100)}%</span>
 	</div>
 
-	<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+	<div class="segmented">
 		{#each QUALITY_PRESETS as preset (preset.id)}
 			{@const isActive = !queue.useCustom && queue.presetId === preset.id}
 			<button
 				type="button"
-				class="quality-option"
-				class:quality-option-active={isActive}
+				class="segment"
+				class:segment-active={isActive}
 				aria-pressed={isActive}
 				onclick={() => pick(preset.id)}
 			>
-				<span class="flex items-baseline justify-between gap-2">
-					<span class="font-display text-lg font-semibold">{preset.label}</span>
-					<span
-						class="text-xs font-semibold tabular-nums"
-						class:text-moss-200={isActive}
-						class:text-ink-500={!isActive}
-					>
-						{Math.round(preset.quality * 100)}%
-					</span>
-				</span>
-				<span
-					class="text-xs leading-relaxed"
-					class:text-moss-100={isActive}
-					class:text-ink-600={!isActive}
-				>
-					{preset.hint}
-				</span>
+				{preset.label}
 			</button>
 		{/each}
 	</div>
 
-	<div class="mt-6 border-t border-ink-200 pt-6">
-		<div class="flex flex-wrap items-center justify-between gap-3">
-			<button
-				type="button"
-				class="text-sm font-semibold text-ink-700 underline underline-offset-4 hover:text-ember-700"
-				aria-pressed={queue.useCustom}
-				onclick={enableCustom}
-			>
-				Ajustar la calidad manualmente
-			</button>
-
-			{#if queue.useCustom}
-				<span class="font-display text-2xl font-semibold tabular-nums text-ember-700">
-					{queue.customQuality}%
-				</span>
-			{/if}
-		</div>
-
+	<p class="mt-2 min-h-10 text-xs leading-relaxed text-ink-600">
 		{#if queue.useCustom}
-			<label class="mt-4 block">
-				<span class="sr-only">Calidad personalizada, de 10 a 100 por ciento</span>
-				<input
-					type="range"
-					min="10"
-					max="100"
-					step="1"
-					class="slider"
-					bind:value={queue.customQuality}
-				/>
-			</label>
-			<div class="mt-2 flex justify-between text-xs font-medium text-ink-500">
-				<span>Archivo más liviano</span>
-				<span>Mayor detalle</span>
-			</div>
+			A la izquierda, archivos más livianos; a la derecha, más detalle.
+		{:else}
+			{activePreset?.hint}
 		{/if}
-	</div>
+	</p>
+
+	<label class="mt-1 flex cursor-pointer items-center gap-2 text-sm text-ink-700">
+		<input
+			type="checkbox"
+			class="h-4 w-4 accent-ember-600"
+			bind:checked={queue.useCustom}
+		/>
+		Ajustar a mano
+	</label>
+
+	{#if queue.useCustom}
+		<div class="mt-3 flex items-center gap-3">
+			<input
+				type="range"
+				min="10"
+				max="100"
+				step="1"
+				class="slider"
+				aria-label="Calidad personalizada, de 10 a 100 por ciento"
+				bind:value={queue.customQuality}
+			/>
+			<span class="num w-10 text-right text-sm font-medium text-ink-900">{queue.customQuality}%</span>
+		</div>
+	{/if}
 </section>
