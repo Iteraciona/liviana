@@ -307,6 +307,64 @@
 		animation: cell-lift 1s var(--ease-out-expo) infinite;
 	}
 
+	/* --- Promo banner (Iteraciona's own services) --- */
+	.promo {
+		@apply mx-auto flex w-full max-w-[280px] flex-col gap-2;
+	}
+
+	.promo-caption {
+		@apply text-[11px] font-medium text-ink-500;
+	}
+
+	.promo-link {
+		@apply block rounded-xl transition-transform duration-200;
+	}
+
+	.promo-link:hover {
+		transform: translateY(-2px);
+	}
+
+	.promo-card {
+		@apply flex aspect-square flex-col bg-ink-900 p-5 text-white;
+	}
+
+	.promo-card-moss {
+		background: var(--color-moss-900);
+	}
+
+	.promo-card-ember {
+		background: var(--color-ember-700);
+	}
+
+	.promo-eyebrow {
+		@apply font-mono text-[11px] tracking-wide text-ink-300;
+	}
+
+	.promo-card-moss .promo-eyebrow {
+		color: var(--color-moss-100);
+	}
+
+	.promo-card-ember .promo-eyebrow {
+		color: var(--color-ember-100);
+	}
+
+	.promo-title {
+		@apply mt-3 text-xl leading-tight font-semibold tracking-tight;
+		text-wrap: balance;
+	}
+
+	.promo-text {
+		@apply mt-2 text-[13px] leading-relaxed text-white/80;
+	}
+
+	.promo-cta {
+		@apply mt-auto inline-flex items-center gap-1.5 text-[13px] font-medium text-ember-300;
+	}
+
+	.promo-card-ember .promo-cta {
+		@apply text-white;
+	}
+
 	/* --- Legal documents --- */
 	.legal-body h2 {
 		@apply mt-12 mb-4 text-xl font-semibold text-ink-900 first:mt-0;

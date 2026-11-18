@@ -3,6 +3,8 @@
 	import CompareStage from '$lib/components/site/converter/CompareStage.svelte';
 	import Dropzone from '$lib/components/site/converter/Dropzone.svelte';
 	import Sidebar from '$lib/components/site/converter/Sidebar.svelte';
+	import PromoBanner from '$lib/components/site/promo/PromoBanner.svelte';
+	import { promo } from '$lib/stores/promo.svelte';
 	import { queue } from '$lib/stores/queue.svelte';
 	import { supportsWebp } from '$lib/services/converter';
 
@@ -97,6 +99,7 @@
 
 	onMount(() => {
 		canEncode = supportsWebp();
+		const stopPromo = promo.start();
 
 		// A note for whoever opens the console: the privacy claim can be checked right there.
 		console.info(
@@ -104,6 +107,8 @@
 			'font: 600 16px Geist, system-ui, sans-serif; color: #df6d25',
 			'font: 13px system-ui, sans-serif'
 		);
+
+		return stopPromo;
 	});
 </script>
 
@@ -150,7 +155,12 @@
 
 {#if hasJobs && selected}
 	<h1 class="sr-only">Liviana: convierte tus imágenes a WebP</h1>
-	<div class="flex flex-1 flex-col lg:h-[calc(100dvh-3.5rem)] lg:flex-row">
+	<div class="flex flex-1 flex-col lg:h-[calc(100dvh-3.5rem)] lg:flex-none lg:flex-row">
+		{#if promo.wide && promo.current}
+			<aside class="w-[312px] shrink-0 border-r border-ink-200 p-4" aria-label="Servicios de Iteraciona">
+				<PromoBanner banner={promo.current} />
+			</aside>
+		{/if}
 		<CompareStage job={selected} />
 		<Sidebar
 			selectedId={selected.id}
@@ -164,7 +174,18 @@
 		<div class="drop-overlay" aria-hidden="true">Suelta para agregar a la lista</div>
 	{/if}
 {:else}
-	<div class="flex flex-1 flex-col p-3 sm:p-4" style="min-height: calc(100dvh - 3.5rem)">
+	<div
+		class="flex flex-1 flex-col gap-4 p-3 sm:p-4 xl:flex-row"
+		style="min-height: calc(100dvh - 3.5rem)"
+	>
+		{#if promo.current}
+			<aside
+				class="order-last shrink-0 py-4 xl:order-first xl:w-[296px] xl:py-0"
+				aria-label="Servicios de Iteraciona"
+			>
+				<PromoBanner banner={promo.current} />
+			</aside>
+		{/if}
 		<Dropzone active={isDragging} disabled={!canAdd} onpick={openPicker} />
 	</div>
 {/if}

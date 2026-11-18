@@ -2,6 +2,8 @@
 	import JobRow from './JobRow.svelte';
 	import QualityPicker from './QualityPicker.svelte';
 	import TweenNumber from './TweenNumber.svelte';
+	import PromoBanner from '$lib/components/site/promo/PromoBanner.svelte';
+	import { promo } from '$lib/stores/promo.svelte';
 	import { queue } from '$lib/stores/queue.svelte';
 	import { formatBytes } from '$lib/utils/format';
 
@@ -23,7 +25,7 @@
 </script>
 
 <aside
-	class="flex flex-col border-t border-ink-200 bg-white lg:min-h-0 lg:w-[380px] lg:shrink-0 lg:border-t-0 lg:border-l"
+	class="flex flex-col border-t border-ink-200 bg-white lg:min-h-0 lg:w-[380px] lg:shrink-0 lg:overflow-y-auto lg:border-t-0 lg:border-l"
 	aria-label="Ajustes y lista de imágenes"
 >
 	<div class="flex flex-col gap-5 border-b border-ink-200 p-5">
@@ -150,9 +152,16 @@
 		</div>
 	</div>
 
-	<ul class="flex flex-col gap-0.5 px-3 pb-4 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
+	<ul class="flex flex-col gap-0.5 px-3 pb-4">
 		{#each queue.jobs as job (job.id)}
 			<JobRow {job} selected={job.id === selectedId} {onselect} />
 		{/each}
 	</ul>
+
+	<!-- Below 1280px there is no room for a left column, so the banner closes the panel. -->
+	{#if !promo.wide && promo.current}
+		<div class="border-t border-ink-200 p-5">
+			<PromoBanner banner={promo.current} />
+		</div>
+	{/if}
 </aside>
