@@ -1,15 +1,18 @@
 <script lang="ts">
 	import LegalPage from '$lib/components/site/legal/LegalPage.svelte';
+	import Seo from '$lib/components/site/Seo.svelte';
+	import { documentPage, organization, website } from '$lib/config/schema';
+
+	const description =
+		'Liviana convierte tus imágenes dentro de tu navegador. No recolectamos datos personales, no usamos cookies y tus archivos nunca llegan a un servidor.';
 </script>
 
-<svelte:head>
-	<title>Política de privacidad — Liviana</title>
-	<meta
-		name="description"
-		content="Liviana convierte tus imágenes dentro de tu navegador. No recolectamos datos personales, no usamos cookies y tus archivos nunca llegan a un servidor."
-	/>
-	<meta name="robots" content="index, follow" />
-</svelte:head>
+<Seo
+	title="Política de privacidad | Liviana"
+	{description}
+	path="/privacidad"
+	schema={[organization, website, ...documentPage('/privacidad', 'Política de privacidad', description)]}
+/>
 
 <LegalPage
 	title="Política de privacidad"

@@ -4,6 +4,8 @@
 	import Dropzone from '$lib/components/site/converter/Dropzone.svelte';
 	import Sidebar from '$lib/components/site/converter/Sidebar.svelte';
 	import PromoBanner from '$lib/components/site/promo/PromoBanner.svelte';
+	import Seo from '$lib/components/site/Seo.svelte';
+	import { organization, webApplication, website } from '$lib/config/schema';
 	import { promo } from '$lib/stores/promo.svelte';
 	import { queue } from '$lib/stores/queue.svelte';
 	import { supportsWebp } from '$lib/services/converter';
@@ -120,21 +122,23 @@
 	onpaste={handlePaste}
 />
 
-<svelte:head>
-	<title>Liviana — Convierte tus imágenes a WebP sin subirlas a ningún lado</title>
-	<meta
-		name="description"
-		content="Arrastra tus JPG, PNG, GIF o AVIF y obtén archivos WebP más livianos. Todo ocurre dentro de tu navegador: las imágenes nunca salen de tu equipo."
-	/>
-	<meta property="og:title" content="Liviana — Tus imágenes, más livianas" />
-	<meta
-		property="og:description"
-		content="Convierte a WebP sin subir nada. Todo ocurre dentro de tu navegador."
-	/>
-	<meta property="og:type" content="website" />
-	<meta property="og:image" content="/icon-512.png" />
-	<meta name="twitter:card" content="summary" />
-</svelte:head>
+<Seo
+	title="Convertir imágenes a WebP gratis y sin subirlas | Liviana"
+	socialTitle="Liviana: tus imágenes a WebP, sin subirlas a ningún lado"
+	description="Convierte JPG, PNG, GIF, AVIF y SVG a WebP gratis y sin subir nada: todo ocurre en tu navegador. Compara el antes y el después y descarga en ZIP."
+	path="/"
+	keywords={[
+		'convertir a webp',
+		'convertidor webp',
+		'jpg a webp',
+		'png a webp',
+		'comprimir imágenes',
+		'optimizar imágenes para web',
+		'webp gratis',
+		'convertir imágenes sin subirlas'
+	]}
+	schema={[organization, website, webApplication]}
+/>
 
 <input
 	bind:this={picker}

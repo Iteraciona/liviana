@@ -1,15 +1,18 @@
 <script lang="ts">
 	import LegalPage from '$lib/components/site/legal/LegalPage.svelte';
+	import Seo from '$lib/components/site/Seo.svelte';
+	import { documentPage, organization, website } from '$lib/config/schema';
+
+	const description =
+		'Condiciones de uso de Liviana, la herramienta gratuita de Iteraciona para convertir imágenes a WebP dentro de tu navegador.';
 </script>
 
-<svelte:head>
-	<title>Términos y condiciones — Liviana</title>
-	<meta
-		name="description"
-		content="Condiciones de uso de Liviana, la herramienta gratuita de Iteraciona para convertir imágenes a WebP dentro de tu navegador."
-	/>
-	<meta name="robots" content="index, follow" />
-</svelte:head>
+<Seo
+	title="Términos y condiciones | Liviana"
+	{description}
+	path="/terminos"
+	schema={[organization, website, ...documentPage('/terminos', 'Términos y condiciones', description)]}
+/>
 
 <LegalPage
 	title="Términos y condiciones"
